@@ -4,6 +4,7 @@ import 'package:namhockey/core/common/cubit/app_user/app_user_cubit.dart';
 import 'package:namhockey/features/discussion/domain/entity/message_entity.dart';
 import 'package:namhockey/features/discussion/presentation/bloc/discussion_bloc.dart';
 import 'package:namhockey/features/discussion/presentation/widgets/message_bubble.dart';
+import 'package:namhockey/features/auth/presentation/bloc/auth_bloc.dart';
 
 class DiscussionPage extends StatefulWidget {
   final String teamId;
@@ -34,6 +35,14 @@ class _DiscussionPageState extends State<DiscussionPage> {
   void dispose() {
     _messageController.dispose();
     super.dispose();
+  }
+
+  void _showTeamPlayers() {
+    context.read<AuthBloc>().add(GetAllUsersEvent());
+    showDialog(
+      context: context,
+      builder: (context) => TeamPlayersDialog(teamId: widget.teamId),
+    );
   }
 
   void _sendMessage() {
@@ -69,7 +78,18 @@ class _DiscussionPageState extends State<DiscussionPage> {
             : '';
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.teamName)),
+      appBar: AppBar(
+        title: GestureDetector(
+          onTap: _showTeamPlayers,
+          child: Row(
+            children: [
+              Text(widget.teamName),
+              const SizedBox(width: 4),
+              const Icon(Icons.people, size: 20),
+            ],
+          ),
+        ),
+      ),
       backgroundColor: const Color.fromARGB(255, 240, 231, 231),
       body: Column(
         children: [
@@ -161,6 +181,90 @@ class _DiscussionPageState extends State<DiscussionPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class TeamPlayersDialog extends StatelessWidget {
+  final String teamId;
+
+  const TeamPlayersDialog({
+    super.key,
+    required this.teamId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Team Players',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                if (state is AuthLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (state is UsersLoaded) {
+                  final teamPlayers = state.users
+                      .where((user) => user.role == 'player' && user.teamId == teamId)
+                      .toList();
+
+                  if (teamPlayers.isEmpty) {
+                    return const Center(
+                      child: Text('No players in this team yet'),
+                    );
+                  }
+
+                  return SizedBox(
+                    height: 300,
+                    child: ListView.builder(
+                      itemCount: teamPlayers.length,
+                      itemBuilder: (context, index) {
+                        final player = teamPlayers[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 4,
+                          ),
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                              child: Icon(Icons.person),
+                            ),
+                            title: Text(player.name),
+                            subtitle: Text('Role: ${player.role}'),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+
+                return const Center(child: Text('Failed to load players'));
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
