@@ -39,30 +39,85 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
     super.initState();
-    context.read<AuthBloc>().add(AuthGetUserDetailsEvent());  
-    
+    context.read<AuthBloc>().add(AuthGetUserDetailsEvent());
   }
-  // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NamHockey',
       onGenerateRoute: AppRoutes.generateRoute,
-      home: BlocSelector<AppUserCubit, AppUserState, bool>(
-        selector: (state) {
-          return state is AppUserLoggedIn;
-        },
-        builder: (context, isLoggedIn) {
-          if (isLoggedIn) {
-            return MainNavigationPage();
+      home: BlocBuilder<AuthBloc, AuthState>(
+        buildWhen: (previous, current) => 
+          current is AuthInitial || 
+          (previous is AuthInitial && current is AuthLoading) ||
+          current is AuthSuccess ||
+          current is AuthFailure,
+        builder: (context, state) {
+          if (_isInitialLoad && (state is AuthInitial || state is AuthLoading)) {
+            return const LoadingScreen();
           }
-          return SignInPage();
+          
+          if (state is AuthSuccess || state is AuthFailure) {
+            _isInitialLoad = false;
+          }
+          
+          return BlocSelector<AppUserCubit, AppUserState, bool>(
+            selector: (state) {
+              return state is AppUserLoggedIn;
+            },
+            builder: (context, isLoggedIn) {
+              if (isLoggedIn) {
+                return const MainNavigationPage();
+              }
+              return const SignInPage();
+            },
+          );
         },
+      ),
+    );
+  }
+}
+
+class LoadingScreen extends StatelessWidget {
+  const LoadingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo
+            SizedBox(
+              height: 120,
+              child: Image.asset("assets/images/nht.jpg"),
+            ),
+            const SizedBox(height: 32),
+            // Loading indicator
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
+            const SizedBox(height: 24),
+            // Loading text
+            Text(
+              'Loading...',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

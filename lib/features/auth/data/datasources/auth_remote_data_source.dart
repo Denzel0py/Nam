@@ -384,50 +384,66 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       // 1. Verify user exists and is a player
       print('Verifying user exists...');
-      final userCheck = await supabaseClient
-          .from('profiles')
-          .select()
-          .eq('id', userId)
-          .maybeSingle();
-      
-      if (userCheck == null) {
-        throw ServerException('User not found in profiles table');
-      }
-
-      if (userCheck['role'] != 'player') {
-        throw ServerException('User is not a player');
-      }
-
-      print('User found: ${userCheck.toString()}');
-
-      // 2. Update user role and remove team_id
-      print('Updating user profile...');
       try {
-        final updateResponse = await supabaseClient.rpc(
-          'update_user_to_regular',
-          params: {
-            'user_id': userId,
-          },
-        );
-        print('Update response: $updateResponse');
-
-        // Then fetch the updated user
-        final updatedUser = await supabaseClient
+        final userCheck = await supabaseClient
             .from('profiles')
             .select()
             .eq('id', userId)
-            .single();
-
-        print('Updated user data: ${updatedUser.toString()}');
-
-        if (updatedUser['role'] != 'user') {
-          print('Role update verification failed. Current role: ${updatedUser['role']}');
-          throw ServerException('Failed to update user role to regular user');
+            .maybeSingle();
+        
+        print('User check result: ${userCheck?.toString()}');
+        
+        if (userCheck == null) {
+          print('User not found in profiles table for ID: $userId');
+          throw ServerException('User not found in profiles table');
         }
 
-        return UserModel.fromJson(updatedUser);
+        if (userCheck['role'] != 'player') {
+          print('User role check failed. Expected: player, Got: ${userCheck['role']}');
+          throw ServerException('User is not a player');
+        }
+
+        print('User found: ${userCheck.toString()}');
+
+        // 2. Update user role and remove team_id
+        print('Updating user profile...');
+        try {
+          final updateResponse = await supabaseClient.rpc(
+            'update_user_to_regular',
+            params: {
+              'user_id': userId,
+            },
+          );
+          print('Update response: $updateResponse');
+
+          // Then fetch the updated user
+          final updatedUser = await supabaseClient
+              .from('profiles')
+              .select()
+              .eq('id', userId)
+              .single();
+
+          print('Updated user data: ${updatedUser.toString()}');
+
+          if (updatedUser['role'] != 'user') {
+            print('Role update verification failed. Expected: user, Got: ${updatedUser['role']}');
+            throw ServerException('Failed to update user role to regular user');
+          }
+
+          return UserModel.fromJson(updatedUser);
+        } catch (e) {
+          print('Error during user update: $e');
+          if (e is PostgrestException) {
+            print('PostgreSQL Error Details:');
+            print('Code: ${e.code}');
+            print('Message: ${e.message}');
+            print('Details: ${e.details}');
+            print('Hint: ${e.hint}');
+          }
+          throw ServerException('Failed to update user: ${e.toString()}');
+        }
       } catch (e) {
-        print('Error during user update: $e');
+        print('Error during user verification: $e');
         if (e is PostgrestException) {
           print('PostgreSQL Error Details:');
           print('Code: ${e.code}');
@@ -435,7 +451,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           print('Details: ${e.details}');
           print('Hint: ${e.hint}');
         }
-        throw ServerException('Failed to update user: ${e.toString()}');
+        rethrow;
       }
     } catch (e) {
       print('Error in makeRegularUser: $e');

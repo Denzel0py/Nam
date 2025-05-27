@@ -78,14 +78,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-void _onAuthGetUserData (AuthGetUserDetailsEvent event, Emitter<AuthState> emit) async {
+  void _onAuthGetUserData(AuthGetUserDetailsEvent event, Emitter<AuthState> emit) async {
+    print('AuthBloc: Starting to get user data');
     emit(AuthLoading());
-    final res = await _getCurrentUserDetailsUseCase(NoParams());
     
-    res.fold(
-      (l) => emit(AuthFailure(l.message)),
-      (r) => _emitAuthSuccess(r, emit),
-    );
+    try {
+      final res = await _getCurrentUserDetailsUseCase(NoParams());
+      print('AuthBloc: Got user data result');
+      
+      res.fold(
+        (l) {
+          print('AuthBloc: Error getting user data - ${l.message}');
+          emit(AuthFailure(l.message));
+        },
+        (r) {
+          print('AuthBloc: Successfully got user data');
+          _emitAuthSuccess(r, emit);
+        },
+      );
+    } catch (e) {
+      print('AuthBloc: Exception getting user data - $e');
+      emit(AuthFailure(e.toString()));
+    }
   }
 
   void _onAuthLogOut(AuthLogOutEvent event, Emitter<AuthState> emit) async {
@@ -107,13 +121,19 @@ void _onAuthGetUserData (AuthGetUserDetailsEvent event, Emitter<AuthState> emit)
   }
 
   void _onGetAllUsers(GetAllUsersEvent event, Emitter<AuthState> emit) async {
-    emit(AuthLoading());
-    final res = await _getAllUsersUseCase(NoParams());
-    
-    res.fold(
-      (l) => emit(AuthFailure(l.message)),
-      (r) => emit(UsersLoaded(r)),
-    );
+    try {
+      final res = await _getAllUsersUseCase(NoParams());
+      if (!emit.isDone) {
+        res.fold(
+          (l) => emit(AuthFailure(l.message)),
+          (r) => emit(UsersLoaded(r)),
+        );
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(AuthFailure(e.toString()));
+      }
+    }
   }
 
   void _onMakeCoach(MakeCoachEvent event, Emitter<AuthState> emit) async {
@@ -143,16 +163,48 @@ void _onAuthGetUserData (AuthGetUserDetailsEvent event, Emitter<AuthState> emit)
   }
 
   void _onMakePlayer(MakePlayerEvent event, Emitter<AuthState> emit) async {
+    print('AuthBloc: Starting make player process');
     emit(AuthLoading());
-    final result = await _makePlayerUseCase(MakePlayerParams(
-      userId: event.userId,
-      teamId: event.teamId,
-    ));
-
-    result.fold(
-      (failure) => emit(AuthFailure(failure.message)),
-      (user) => emit(AuthSuccess(user)),
-    );
+    
+    try {
+      final result = await _makePlayerUseCase(MakePlayerParams(
+        userId: event.userId,
+        teamId: event.teamId,
+      ));
+      
+      print('AuthBloc: Got make player result');
+      
+      await result.fold(
+        (failure) async {
+          print('AuthBloc: Error making player - ${failure.message}');
+          if (!emit.isDone) {
+            emit(AuthFailure(failure.message));
+          }
+        },
+        (user) async {
+          print('AuthBloc: Successfully made player, fetching updated users');
+          // Fetch updated users list
+          final usersResult = await _getAllUsersUseCase(NoParams());
+          if (!emit.isDone) {
+            usersResult.fold(
+              (l) {
+                print('AuthBloc: Error fetching users - ${l.message}');
+                emit(AuthFailure(l.message));
+              },
+              (r) {
+                print('AuthBloc: Successfully fetched updated users');
+                emit(UsersLoaded(r));
+              },
+            );
+          }
+        },
+      );
+    } catch (e) {
+      print('AuthBloc: Exception making player - $e');
+      if (!emit.isDone) {
+        emit(AuthFailure(e.toString()));
+      }
+    }
   }
 
   void _onMakeRegularUser(MakeRegularUserEvent event, Emitter<AuthState> emit) async {

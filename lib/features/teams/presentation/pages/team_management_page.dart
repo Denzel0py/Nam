@@ -14,6 +14,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
   @override
   void initState() {
     super.initState();
+    // Load users immediately without showing loading state
     context.read<AuthBloc>().add(GetAllUsersEvent());
   }
 
@@ -29,6 +30,8 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Team Management')),
       body: BlocConsumer<AuthBloc, AuthState>(
+        listenWhen: (previous, current) => 
+          current is AuthFailure || current is AuthSuccess,
         listener: (context, state) {
           if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -44,14 +47,14 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.pop(context);
-            context.read<AuthBloc>().add(GetAllUsersEvent());
+            // Refresh the users list without navigating
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.read<AuthBloc>().add(GetAllUsersEvent());
+            });
           }
         },
         builder: (context, state) {
-          if (state is AuthLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is UsersLoaded) {
+          if (state is UsersLoaded) {
             // Get current user from AppUserCubit
             final appUserState = context.read<AppUserCubit>().state;
             if (appUserState is! AppUserLoggedIn) {
@@ -68,24 +71,22 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
             }
 
             // Split users into available users and current players
-            final availableUsers =
-                state.users
-                    .where(
-                      (user) =>
-                          user.role != 'admin' &&
-                          user.id != currentUser.id &&
-                          user.role == 'user', // Only show regular users
-                    )
-                    .toList();
+            final availableUsers = state.users
+                .where(
+                  (user) =>
+                      user.role != 'admin' &&
+                      user.id != currentUser.id &&
+                      user.role == 'user',
+                )
+                .toList();
 
-            final currentPlayers =
-                state.users
-                    .where(
-                      (user) =>
-                          user.role == 'player' &&
-                          user.teamId == currentUser.teamId,
-                    )
-                    .toList();
+            final currentPlayers = state.users
+                .where(
+                  (user) =>
+                      user.role == 'player' &&
+                      user.teamId == currentUser.teamId,
+                )
+                .toList();
 
             return SingleChildScrollView(
               child: Column(
@@ -170,8 +171,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                             title: Text(user.name),
                             subtitle: Text('Current Role: ${user.role}'),
                             trailing: ElevatedButton(
-                              onPressed:
-                                  () => _showAddPlayerDialog(context, user.id),
+                              onPressed: () => _showAddPlayerDialog(context, user.id),
                               child: const Text('Add as Player'),
                             ),
                           ),
@@ -208,63 +208,65 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
       return const SizedBox.shrink();
     }
 
-    return AlertDialog(
-      title: const Text('Add Player to Team'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Are you sure you want to add this user as a player to your team?',
+    return BlocConsumer<AuthBloc, AuthState>(
+      listenWhen: (previous, current) => 
+        current is AuthLoading || current is AuthFailure || current is UsersLoaded,
+      listener: (context, state) {
+        if (state is AuthLoading) {
+          setState(() {
+            _isLoading = true;
+          });
+        } else if (state is AuthFailure) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
+        } else if (state is UsersLoaded) {
+          setState(() {
+            _isLoading = false;
+          });
+          // Close the dialog
+          Navigator.of(context).pop();
+        }
+      },
+      builder: (context, state) {
+        return AlertDialog(
+          title: const Text('Add Player to Team'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Are you sure you want to add this user as a player to your team?',
+              ),
+              if (_isLoading) ...[
+                const SizedBox(height: 16),
+                const CircularProgressIndicator(),
+              ],
+            ],
           ),
-          if (_isLoading) ...[
-            const SizedBox(height: 16),
-            const CircularProgressIndicator(),
-          ],
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed:
-              _isLoading
+          actions: [
+            TextButton(
+              onPressed: _isLoading ? null : () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: _isLoading
                   ? null
                   : () {
-                    setState(() {
-                      _isLoading = true;
-                    });
-                    context.read<AuthBloc>().add(
-                      MakePlayerEvent(
-                        userId: widget.userId,
-                        teamId: appUserState.user.teamId!,
-                      ),
-                    );
-                  },
-          child: const Text('Add Player'),
-        ),
-      ],
+                      context.read<AuthBloc>().add(
+                        MakePlayerEvent(
+                          userId: widget.userId,
+                          teamId: appUserState.user.teamId!,
+                        ),
+                      );
+                    },
+              child: const Text('Add Player'),
+            ),
+          ],
+        );
+      },
     );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final state = context.read<AuthBloc>().state;
-    if (state is AuthFailure) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-      );
-    } else if (state is AuthSuccess) {
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.pop(context);
-      context.read<AuthBloc>().add(GetAllUsersEvent());
-    }
   }
 }

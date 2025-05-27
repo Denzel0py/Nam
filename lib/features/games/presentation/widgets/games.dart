@@ -8,76 +8,111 @@ class Games extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Date and Time Column
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              Text(
+                game.gameDate,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                game.gameTime,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          // Vertical Divider
+          Container(
+            height: 40,
+            width: 1,
+            color: Colors.grey[300],
+          ),
+          const SizedBox(width: 16),
+          // Teams and VS
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Team 1
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                game.gameDate,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              Text(
-                                game.gameTime,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
+                      Flexible(
+                        child: Text(
+                          game.team1,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
                           ),
-                          Container(
-                            height: 30,
-                            width: 1,
-                            margin: EdgeInsets.symmetric(horizontal: 8),
-                            color: Colors.white,
+                          textAlign: TextAlign.end,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (game.team1Logo.isNotEmpty)
+                        Image.network(
+                          game.team1Logo,
+                          width: 32,
+                          height: 32,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Icon(Icons.sports, color: theme.primaryColor),
+                        ),
+                    ],
+                  ),
+                ),
+                // VS
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    'VS',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[400],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                // Team 2
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    children: [
+                      if (game.team2Logo.isNotEmpty)
+                        Image.network(
+                          game.team2Logo,
+                          width: 32,
+                          height: 32,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Icon(Icons.sports, color: theme.primaryColor),
+                        ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          game.team2,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
                           ),
-                        ],
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
-              Row(
-                children: [
-                  if (game.team1Logo.isNotEmpty)
-                    Image.network(
-                      game.team1Logo,
-                      width: 40,
-                      height: 60,
-                      errorBuilder:
-                          (context, error, stackTrace) =>
-                              const Icon(Icons.sports, color: Colors.white),
-                    ),
-                  const SizedBox(width: 8),
-                  Text(game.team1, style: TextStyle(color: Colors.white)),
-                  const SizedBox(width: 16),
-                  Text('vs', style: TextStyle(color: Colors.white)),
-                  const SizedBox(width: 16),
-                  Text(game.team2, style: TextStyle(color: Colors.white)),
-                  const SizedBox(width: 8),
-                  if (game.team2Logo.isNotEmpty)
-                    Image.network(
-                      game.team2Logo,
-                      width: 40,
-                      height: 60,
-                      errorBuilder:
-                          (context, error, stackTrace) =>
-                              const Icon(Icons.sports, color: Colors.white),
-                    ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
