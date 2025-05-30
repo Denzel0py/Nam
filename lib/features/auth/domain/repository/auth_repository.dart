@@ -26,9 +26,11 @@ abstract interface class AuthRepository {
     required String userId,
     required String teamId,
   });
-  Future<Either<Failure, UserEntity>> makeRegularUser({
-    required String userId,
+  Future<Either<Failure, UserEntity>> makeRegularUser({required String userId});
+
+  Future<Either<Failure, UserEntity>> updateProfile({
+    String? name,
+    String? email,
+    String? profilePicturePath,
   });
 }
-
-

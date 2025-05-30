@@ -13,6 +13,7 @@ import 'package:namhockey/features/auth/domain/usecase/make_coach_use_case.dart'
 import 'package:namhockey/features/auth/domain/usecase/make_player_use_case.dart';
 import 'package:namhockey/features/auth/domain/usecase/make_regular_user_use_case.dart';
 import 'package:namhockey/features/auth/domain/usecase/sign_up_use_case.dart';
+import 'package:namhockey/features/auth/domain/usecase/update_profile_use_case.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -27,7 +28,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final MakeCoachUseCase _makeCoachUseCase;
   final MakePlayerUseCase _makePlayerUseCase;
   final MakeRegularUserUseCase _makeRegularUserUseCase;
-  
+  final UpdateProfileUseCase _updateProfileUseCase;
+
   AuthBloc({
     required SignUpUseCase signUpUseCase,
     required LogInUseCase logInUseCase,
@@ -37,18 +39,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required MakeCoachUseCase makeCoachUseCase,
     required MakePlayerUseCase makePlayerUseCase,
     required MakeRegularUserUseCase makeRegularUserUseCase,
+    required UpdateProfileUseCase updateProfileUseCase,
     required AppUserCubit appUserCubit,
-  })  : _signUpUseCase = signUpUseCase,
-        _logInUseCase = logInUseCase,
-        _getCurrentUserDetailsUseCase = getCurrentUserDetailsUseCase,
-        _logOutUseCase = logOutUseCase,
-        _getAllUsersUseCase = getAllUsersUseCase,
-        _makeCoachUseCase = makeCoachUseCase,
-        _makePlayerUseCase = makePlayerUseCase,
-        _makeRegularUserUseCase = makeRegularUserUseCase,
-        _appUserCubit = appUserCubit,
-        super(AuthInitial()) {
-    
+  }) : _signUpUseCase = signUpUseCase,
+       _logInUseCase = logInUseCase,
+       _getCurrentUserDetailsUseCase = getCurrentUserDetailsUseCase,
+       _logOutUseCase = logOutUseCase,
+       _getAllUsersUseCase = getAllUsersUseCase,
+       _makeCoachUseCase = makeCoachUseCase,
+       _makePlayerUseCase = makePlayerUseCase,
+       _makeRegularUserUseCase = makeRegularUserUseCase,
+       _updateProfileUseCase = updateProfileUseCase,
+       _appUserCubit = appUserCubit,
+       super(AuthInitial()) {
     on<AuthSignUpEvent>(_onAuthSignUp);
     on<AuthLogInEvent>(_onAuthLogIn);
     on<AuthGetUserDetailsEvent>(_onAuthGetUserData);
@@ -57,35 +60,48 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<MakeCoachEvent>(_onMakeCoach);
     on<MakePlayerEvent>(_onMakePlayer);
     on<MakeRegularUserEvent>(_onMakeRegularUser);
+    on<UpdateProfileEvent>(_onUpdateProfile);
   }
 
-  void _onAuthSignUp (AuthSignUpEvent event, Emitter<AuthState> emit) async {
-    final res = await _signUpUseCase(SignUpParams(name: event.name, email: event.email, password: event.password, role: event.role));
-    
+  void _onAuthSignUp(AuthSignUpEvent event, Emitter<AuthState> emit) async {
+    final res = await _signUpUseCase(
+      SignUpParams(
+        name: event.name,
+        email: event.email,
+        password: event.password,
+        role: event.role,
+      ),
+    );
+
     res.fold(
       (l) => emit(AuthFailure(l.message)),
       (r) => _emitAuthSuccess(r, emit),
     );
   }
 
-  void _onAuthLogIn (AuthLogInEvent event, Emitter<AuthState> emit) async {
+  void _onAuthLogIn(AuthLogInEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    final res = await _logInUseCase(LogInParams(email: event.email, password: event.password));
-    
+    final res = await _logInUseCase(
+      LogInParams(email: event.email, password: event.password),
+    );
+
     res.fold(
       (l) => emit(AuthFailure(l.message)),
       (r) => _emitAuthSuccess(r, emit),
     );
   }
 
-  void _onAuthGetUserData(AuthGetUserDetailsEvent event, Emitter<AuthState> emit) async {
+  void _onAuthGetUserData(
+    AuthGetUserDetailsEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     print('AuthBloc: Starting to get user data');
     emit(AuthLoading());
-    
+
     try {
       final res = await _getCurrentUserDetailsUseCase(NoParams());
       print('AuthBloc: Got user data result');
-      
+
       res.fold(
         (l) {
           print('AuthBloc: Error getting user data - ${l.message}');
@@ -105,17 +121,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _onAuthLogOut(AuthLogOutEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     final res = await _logOutUseCase(NoParams());
-    
-    res.fold(
-      (l) => emit(AuthFailure(l.message)),
-      (r) {
-        _appUserCubit.updateUser(null);
-        emit(AuthInitial());
-      },
-    );
+
+    res.fold((l) => emit(AuthFailure(l.message)), (r) {
+      _appUserCubit.updateUser(null);
+      emit(AuthInitial());
+    });
   }
 
-  void _emitAuthSuccess (UserEntity user, Emitter<AuthState> emit) {
+  void _emitAuthSuccess(UserEntity user, Emitter<AuthState> emit) {
     _appUserCubit.updateUser(user);
     emit(AuthSuccess(user));
   }
@@ -138,42 +151,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _onMakeCoach(MakeCoachEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    final result = await _makeCoachUseCase(MakeCoachParams(
-      userId: event.userId,
-      teamName: event.teamName,
-      teamLogoPath: event.teamLogo.path,
-    ));
-
-    result.fold(
-      (failure) => emit(AuthFailure(failure.message)),
-      (user) async {
-        // If the current user was made a coach, refresh their session
-        if (user.id == (_appUserCubit.state as AppUserLoggedIn).user.id) {
-          await _getCurrentUserDetailsUseCase(NoParams()).then((res) {
-            res.fold(
-              (l) => emit(AuthFailure(l.message)),
-              (r) => _emitAuthSuccess(r, emit),
-            );
-          });
-        } else {
-          emit(AuthSuccess(user));
-        }
-      },
+    final result = await _makeCoachUseCase(
+      MakeCoachParams(
+        userId: event.userId,
+        teamName: event.teamName,
+        teamLogoPath: event.teamLogo.path,
+      ),
     );
+
+    result.fold((failure) => emit(AuthFailure(failure.message)), (user) async {
+      // If the current user was made a coach, refresh their session
+      if (user.id == (_appUserCubit.state as AppUserLoggedIn).user.id) {
+        await _getCurrentUserDetailsUseCase(NoParams()).then((res) {
+          res.fold(
+            (l) => emit(AuthFailure(l.message)),
+            (r) => _emitAuthSuccess(r, emit),
+          );
+        });
+      } else {
+        emit(AuthSuccess(user));
+      }
+    });
   }
 
   void _onMakePlayer(MakePlayerEvent event, Emitter<AuthState> emit) async {
     print('AuthBloc: Starting make player process');
     emit(AuthLoading());
-    
+
     try {
-      final result = await _makePlayerUseCase(MakePlayerParams(
-        userId: event.userId,
-        teamId: event.teamId,
-      ));
-      
+      final result = await _makePlayerUseCase(
+        MakePlayerParams(userId: event.userId, teamId: event.teamId),
+      );
+
       print('AuthBloc: Got make player result');
-      
+
       await result.fold(
         (failure) async {
           print('AuthBloc: Error making player - ${failure.message}');
@@ -207,15 +218,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  void _onMakeRegularUser(MakeRegularUserEvent event, Emitter<AuthState> emit) async {
+  void _onMakeRegularUser(
+    MakeRegularUserEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
-    final result = await _makeRegularUserUseCase(MakeRegularUserParams(
-      userId: event.userId,
-    ));
+    final result = await _makeRegularUserUseCase(
+      MakeRegularUserParams(userId: event.userId),
+    );
 
     result.fold(
       (failure) => emit(AuthFailure(failure.message)),
       (user) => emit(AuthSuccess(user)),
+    );
+  }
+
+  void _onUpdateProfile(
+    UpdateProfileEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await _updateProfileUseCase(
+      UpdateProfileParams(
+        name: event.name,
+        email: event.email,
+        profilePicturePath: event.profilePicturePath,
+      ),
+    );
+
+    result.fold(
+      (failure) => emit(AuthFailure(failure.message)),
+      (user) => _emitAuthSuccess(user, emit),
     );
   }
 }

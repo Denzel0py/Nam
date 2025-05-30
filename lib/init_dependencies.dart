@@ -12,6 +12,7 @@ import 'package:namhockey/features/auth/domain/usecase/make_coach_use_case.dart'
 import 'package:namhockey/features/auth/domain/usecase/make_player_use_case.dart';
 import 'package:namhockey/features/auth/domain/usecase/make_regular_user_use_case.dart';
 import 'package:namhockey/features/auth/domain/usecase/sign_up_use_case.dart';
+import 'package:namhockey/features/auth/domain/usecase/update_profile_use_case.dart';
 import 'package:namhockey/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:namhockey/features/discussion/data/datasources/discussion_remote_source.dart';
 import 'package:namhockey/features/discussion/data/repository/discussion_repository_impl.dart';
@@ -72,27 +73,49 @@ void _initAuth() {
   );
 
   // Use cases
-  serviceLocator.registerLazySingleton(() => SignUpUseCase(authRepository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => LogInUseCase(authRepository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => GetCurrentUserDetailsUseCase(authRepository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => LogOutUseCase(authRepository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => GetAllUsersUseCase(authRepository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => MakeCoachUseCase(authRepository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => MakePlayerUseCase(authRepository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => MakeRegularUserUseCase(authRepository: serviceLocator()));
+  serviceLocator.registerLazySingleton(
+    () => SignUpUseCase(authRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => LogInUseCase(authRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => GetCurrentUserDetailsUseCase(authRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => LogOutUseCase(authRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => GetAllUsersUseCase(authRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => MakeCoachUseCase(authRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => MakePlayerUseCase(authRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => MakeRegularUserUseCase(authRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => UpdateProfileUseCase(authRepository: serviceLocator()),
+  );
 
   // Bloc
-  serviceLocator.registerFactory(() => AuthBloc(
-    signUpUseCase: serviceLocator(),
-    logInUseCase: serviceLocator(),
-    getCurrentUserDetailsUseCase: serviceLocator(),
-    logOutUseCase: serviceLocator(),
-    appUserCubit: serviceLocator(),
-    getAllUsersUseCase: serviceLocator(),
-    makeCoachUseCase: serviceLocator(),
-    makePlayerUseCase: serviceLocator(),
-    makeRegularUserUseCase: serviceLocator(),
-  ));
+  serviceLocator.registerFactory(
+    () => AuthBloc(
+      signUpUseCase: serviceLocator(),
+      logInUseCase: serviceLocator(),
+      getCurrentUserDetailsUseCase: serviceLocator(),
+      logOutUseCase: serviceLocator(),
+      appUserCubit: serviceLocator(),
+      getAllUsersUseCase: serviceLocator(),
+      makeCoachUseCase: serviceLocator(),
+      makePlayerUseCase: serviceLocator(),
+      makeRegularUserUseCase: serviceLocator(),
+      updateProfileUseCase: serviceLocator(),
+    ),
+  );
 }
 
 void _initGames() {
@@ -104,13 +127,19 @@ void _initGames() {
     () => GameRepositoryImpl(serviceLocator()),
   );
 
-  serviceLocator.registerLazySingleton(() => GetGamesUseCase(gameRepository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => MakeGamesUseCase(gameRepository: serviceLocator()));
+  serviceLocator.registerLazySingleton(
+    () => GetGamesUseCase(gameRepository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => MakeGamesUseCase(gameRepository: serviceLocator()),
+  );
 
-  serviceLocator.registerFactory(() => GamesBloc(
-    getGamesUseCase: serviceLocator(),
-    makeGamesUseCase: serviceLocator(),
-  ));
+  serviceLocator.registerFactory(
+    () => GamesBloc(
+      getGamesUseCase: serviceLocator(),
+      makeGamesUseCase: serviceLocator(),
+    ),
+  );
 }
 
 void _initDiscussion() {
@@ -122,13 +151,19 @@ void _initDiscussion() {
     () => DiscussionRepositoryImpl(serviceLocator()),
   );
 
-  serviceLocator.registerLazySingleton(() => GetMessagesUseCase(repository: serviceLocator()));
-  serviceLocator.registerLazySingleton(() => SendMessageUseCase(repository: serviceLocator()));
+  serviceLocator.registerLazySingleton(
+    () => GetMessagesUseCase(repository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => SendMessageUseCase(repository: serviceLocator()),
+  );
 
-  serviceLocator.registerFactory(() => DiscussionBloc(
-    getMessagesUseCase: serviceLocator(),
-    sendMessageUseCase: serviceLocator(),
-  ));
+  serviceLocator.registerFactory(
+    () => DiscussionBloc(
+      getMessagesUseCase: serviceLocator(),
+      sendMessageUseCase: serviceLocator(),
+    ),
+  );
 }
 
 void _initTeams() {
@@ -140,11 +175,13 @@ void _initTeams() {
     () => TeamRepositoryImpl(serviceLocator()),
   );
 
-  serviceLocator.registerLazySingleton(() => GetTeamNameUseCase(serviceLocator()));
+  serviceLocator.registerLazySingleton(
+    () => GetTeamNameUseCase(serviceLocator()),
+  );
 
-  serviceLocator.registerFactory(() => TeamBloc(
-    getTeamNameUseCase: serviceLocator(),
-  ));
+  serviceLocator.registerFactory(
+    () => TeamBloc(getTeamNameUseCase: serviceLocator()),
+  );
 }
 
 void _initNews() {
@@ -158,12 +195,15 @@ void _initNews() {
 
   serviceLocator.registerLazySingleton(() => GetNewsUseCase(serviceLocator()));
   serviceLocator.registerLazySingleton(() => AddNewsUseCase(serviceLocator()));
-  serviceLocator.registerLazySingleton(() => DeleteNewsUseCase(serviceLocator()));
+  serviceLocator.registerLazySingleton(
+    () => DeleteNewsUseCase(serviceLocator()),
+  );
 
-  serviceLocator.registerFactory(() => NewsBloc(
-    getNewsUseCase: serviceLocator(),
-    addNewsUseCase: serviceLocator(),
-    deleteNewsUseCase: serviceLocator(),
-  ));
+  serviceLocator.registerFactory(
+    () => NewsBloc(
+      getNewsUseCase: serviceLocator(),
+      addNewsUseCase: serviceLocator(),
+      deleteNewsUseCase: serviceLocator(),
+    ),
+  );
 }
-

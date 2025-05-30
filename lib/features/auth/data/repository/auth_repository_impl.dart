@@ -10,8 +10,8 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({required this.authRemoteDataSource});
 
   @override
-  Future<Either<Failure, UserEntity>> getCurrentUser() async{
-     try {
+  Future<Either<Failure, UserEntity>> getCurrentUser() async {
+    try {
       final user = await authRemoteDataSource.getCurrentUser();
 
       if (user == null) {
@@ -19,16 +19,21 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       return right(user);
-      
     } on ServerException catch (e) {
       return left(Failure(e.message));
     }
   }
 
   @override
-  Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({required String email, required String password}) async {
+  Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final user = await authRemoteDataSource.signInWithEmailAndPassword(email: email, password: password,);
+      final user = await authRemoteDataSource.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       return right(user);
     } on ServerException catch (e) {
       return left(Failure(e.message));
@@ -46,9 +51,19 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> signUpWithEmailAndPassword({required String email, required String password, required String name, required String role}) async {
+  Future<Either<Failure, UserEntity>> signUpWithEmailAndPassword({
+    required String email,
+    required String password,
+    required String name,
+    required String role,
+  }) async {
     try {
-      final user = await authRemoteDataSource.signUpWithEmailAndPassword(name: name, email: email, password: password, role: role);
+      final user = await authRemoteDataSource.signUpWithEmailAndPassword(
+        name: name,
+        email: email,
+        password: password,
+        role: role,
+      );
       return right(user);
     } on ServerException catch (e) {
       return left(Failure(e.message));
@@ -106,6 +121,24 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final updatedUser = await authRemoteDataSource.makeRegularUser(
         userId: userId,
+      );
+      return right(updatedUser);
+    } on ServerException catch (e) {
+      return left(Failure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> updateProfile({
+    String? name,
+    String? email,
+    String? profilePicturePath,
+  }) async {
+    try {
+      final updatedUser = await authRemoteDataSource.updateProfile(
+        name: name,
+        email: email,
+        profilePicturePath: profilePicturePath,
       );
       return right(updatedUser);
     } on ServerException catch (e) {

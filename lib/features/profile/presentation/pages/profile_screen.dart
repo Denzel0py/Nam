@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:namhockey/core/common/cubit/app_user/app_user_cubit.dart';
 import 'package:namhockey/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:namhockey/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:namhockey/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -27,9 +29,16 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 50,
-                  child: Icon(Icons.person, size: 50),
+                  backgroundImage:
+                      user.profilePictureUrl != null
+                          ? CachedNetworkImageProvider(user.profilePictureUrl!)
+                          : null,
+                  child:
+                      user.profilePictureUrl == null
+                          ? const Icon(Icons.person, size: 50)
+                          : null,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -41,10 +50,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 Text(
                   user.email,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 if (user.role.isNotEmpty)
                   Padding(
@@ -74,7 +80,12 @@ class ProfileScreen extends StatelessWidget {
                   title: const Text('Edit Profile'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    // Navigate to edit profile
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfilePage(),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
@@ -122,9 +133,7 @@ class ProfileScreen extends StatelessWidget {
                 onPressed: () {
                   context.read<AuthBloc>().add(AuthLogOutEvent());
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Logged out successfully'),
-                    ),
+                    const SnackBar(content: Text('Logged out successfully')),
                   );
                   Navigator.pushAndRemoveUntil(
                     context,

@@ -8,6 +8,7 @@ class UserModel extends UserEntity {
     required super.role,
     super.teamId,
     super.teamName,
+    super.profilePictureUrl,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> map) {
@@ -18,6 +19,7 @@ class UserModel extends UserEntity {
       role: map['role'] ?? 'user',
       teamId: map['team_id'],
       teamName: map['team_name'],
+      profilePictureUrl: map['profile_picture_url'],
     );
   }
 }

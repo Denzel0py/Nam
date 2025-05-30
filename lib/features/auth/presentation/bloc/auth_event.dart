@@ -21,10 +21,7 @@ final class AuthLogInEvent extends AuthEvent {
   final String email;
   final String password;
 
-  AuthLogInEvent({
-    required this.email,
-    required this.password,
-  });
+  AuthLogInEvent({required this.email, required this.password});
 }
 
 final class AuthGetUserDetailsEvent extends AuthEvent {}
@@ -49,16 +46,19 @@ final class MakePlayerEvent extends AuthEvent {
   final String userId;
   final String teamId;
 
-  MakePlayerEvent({
-    required this.userId,
-    required this.teamId,
-  });
+  MakePlayerEvent({required this.userId, required this.teamId});
 }
 
 final class MakeRegularUserEvent extends AuthEvent {
   final String userId;
 
-  MakeRegularUserEvent({
-    required this.userId,
-  });
+  MakeRegularUserEvent({required this.userId});
+}
+
+final class UpdateProfileEvent extends AuthEvent {
+  final String? name;
+  final String? email;
+  final String? profilePicturePath;
+
+  UpdateProfileEvent({this.name, this.email, this.profilePicturePath});
 }

@@ -5,6 +5,7 @@ abstract class UserEntity {
   final String role; // 'user', 'player', or 'coach'
   final String? teamId;
   final String? teamName;
+  final String? profilePictureUrl;
 
   UserEntity({
     required this.id,
@@ -13,5 +14,6 @@ abstract class UserEntity {
     required this.role,
     this.teamId,
     this.teamName,
+    this.profilePictureUrl,
   });
 }
