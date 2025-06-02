@@ -7,6 +7,7 @@ import 'package:namhockey/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:namhockey/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:namhockey/features/discussion/presentation/bloc/discussion_bloc.dart';
 import 'package:namhockey/features/games/presentation/bloc/games_bloc.dart';
+import 'package:namhockey/features/live_matches/presentation/bloc/live_match_bloc.dart';
 import 'package:namhockey/features/news/presentation/bloc/news_bloc.dart';
 import 'package:namhockey/init_dependencies.dart';
 import 'package:namhockey/main_nav.dart';
@@ -18,16 +19,19 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]).then((_) {
-    runApp(MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => serviceLocator<AppUserCubit>()),
-        BlocProvider(create: (_) => serviceLocator<AuthBloc>()),
-        BlocProvider(create: (_) => serviceLocator<GamesBloc>()),
-        BlocProvider(create: (_) => serviceLocator<DiscussionBloc>()),
-        BlocProvider(create: (_) => serviceLocator<NewsBloc>()),
-      ],
-      child: const MyApp(),
-    ));
+    runApp(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => serviceLocator<AppUserCubit>()),
+          BlocProvider(create: (_) => serviceLocator<AuthBloc>()),
+          BlocProvider(create: (_) => serviceLocator<GamesBloc>()),
+          BlocProvider(create: (_) => serviceLocator<DiscussionBloc>()),
+          BlocProvider(create: (_) => serviceLocator<NewsBloc>()),
+          BlocProvider(create: (_) => serviceLocator<LiveMatchBloc>()),
+        ],
+        child: const MyApp(),
+      ),
+    );
   });
 }
 
@@ -54,20 +58,22 @@ class _MyAppState extends State<MyApp> {
       title: 'NamHockey',
       onGenerateRoute: AppRoutes.generateRoute,
       home: BlocBuilder<AuthBloc, AuthState>(
-        buildWhen: (previous, current) => 
-          current is AuthInitial || 
-          (previous is AuthInitial && current is AuthLoading) ||
-          current is AuthSuccess ||
-          current is AuthFailure,
+        buildWhen:
+            (previous, current) =>
+                current is AuthInitial ||
+                (previous is AuthInitial && current is AuthLoading) ||
+                current is AuthSuccess ||
+                current is AuthFailure,
         builder: (context, state) {
-          if (_isInitialLoad && (state is AuthInitial || state is AuthLoading)) {
+          if (_isInitialLoad &&
+              (state is AuthInitial || state is AuthLoading)) {
             return const LoadingScreen();
           }
-          
+
           if (state is AuthSuccess || state is AuthFailure) {
             _isInitialLoad = false;
           }
-          
+
           return BlocSelector<AppUserCubit, AppUserState, bool>(
             selector: (state) {
               return state is AppUserLoggedIn;
@@ -97,10 +103,7 @@ class LoadingScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Logo
-            SizedBox(
-              height: 120,
-              child: Image.asset("assets/images/nht.jpg"),
-            ),
+            SizedBox(height: 120, child: Image.asset("assets/images/nht.jpg")),
             const SizedBox(height: 32),
             // Loading indicator
             const CircularProgressIndicator(
@@ -122,4 +125,3 @@ class LoadingScreen extends StatelessWidget {
     );
   }
 }
-

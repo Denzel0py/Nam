@@ -26,6 +26,13 @@ import 'package:namhockey/features/games/domain/repository/game_repository.dart'
 import 'package:namhockey/features/games/domain/usecase/get_games_usecase.dart';
 import 'package:namhockey/features/games/domain/usecase/make_games_usecase.dart';
 import 'package:namhockey/features/games/presentation/bloc/games_bloc.dart';
+import 'package:namhockey/features/live_matches/data/datasources/live_match_remote_data_source.dart';
+import 'package:namhockey/features/live_matches/data/repository/live_match_repository_impl.dart';
+import 'package:namhockey/features/live_matches/domain/repository/live_match_repository.dart';
+import 'package:namhockey/features/live_matches/domain/usecases/get_live_matches_usecase.dart';
+import 'package:namhockey/features/live_matches/domain/usecases/make_live_match_usecase.dart';
+import 'package:namhockey/features/live_matches/domain/usecases/update_live_match_usecase.dart';
+import 'package:namhockey/features/live_matches/presentation/bloc/live_match_bloc.dart';
 import 'package:namhockey/features/news/data/datasource/news_remote_data_source.dart';
 import 'package:namhockey/features/news/data/repository/news_repository_impl.dart';
 import 'package:namhockey/features/news/domain/repository/news_repository.dart';
@@ -59,6 +66,7 @@ Future<void> initDependencies() async {
   _initDiscussion();
   _initTeams();
   _initNews();
+  _initLiveMatches();
 }
 
 void _initAuth() {
@@ -204,6 +212,34 @@ void _initNews() {
       getNewsUseCase: serviceLocator(),
       addNewsUseCase: serviceLocator(),
       deleteNewsUseCase: serviceLocator(),
+    ),
+  );
+}
+
+void _initLiveMatches() {
+  serviceLocator.registerLazySingleton<LiveMatchRemoteDataSource>(
+    () => LiveMatchRemoteDataSourceImpl(serviceLocator<SupabaseClient>()),
+  );
+
+  serviceLocator.registerLazySingleton<LiveMatchRepository>(
+    () => LiveMatchRepositoryImpl(serviceLocator()),
+  );
+
+  serviceLocator.registerLazySingleton(
+    () => GetLiveMatchesUseCase(repository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => MakeLiveMatchUseCase(repository: serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => UpdateLiveMatchUseCase(repository: serviceLocator()),
+  );
+
+  serviceLocator.registerFactory(
+    () => LiveMatchBloc(
+      getLiveMatchesUseCase: serviceLocator(),
+      makeLiveMatchUseCase: serviceLocator(),
+      updateLiveMatchUseCase: serviceLocator(),
     ),
   );
 }

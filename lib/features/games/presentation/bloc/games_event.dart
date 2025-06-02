@@ -5,6 +5,14 @@ abstract class GamesEvent {}
 
 class GetGamesEvent extends GamesEvent {}
 
+class ShowAllGamesEvent extends GamesEvent {}
+
+class FilterGamesByDateEvent extends GamesEvent {
+  final DateTime date;
+
+  FilterGamesByDateEvent(this.date);
+}
+
 class MakeGamesEvent extends GamesEvent {
   final String team1;
   final String team2;

@@ -67,6 +67,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         listener: (context, state) {
           if (state is AuthSuccess) {
             setState(() => _isLoading = false);
+            context.read<AuthBloc>().add(AuthGetUserDetailsEvent());
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Profile updated successfully')),
             );
