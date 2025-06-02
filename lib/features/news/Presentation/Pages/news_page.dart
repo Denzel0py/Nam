@@ -77,7 +77,7 @@ class _NewsPageState extends State<NewsPage> {
                             news.imageUrl,
                             width: double.infinity,
                             height: 200,
-                            fit: BoxFit.contain,
+                            fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return const SizedBox(
                                 height: 200,
