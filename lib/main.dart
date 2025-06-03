@@ -48,7 +48,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    context.read<AuthBloc>().add(AuthGetUserDetailsEvent());
+    // Only check for user details on first app launch
+    if (_isInitialLoad) {
+      context.read<AuthBloc>().add(AuthGetUserDetailsEvent());
+    }
   }
 
   @override
@@ -75,9 +78,7 @@ class _MyAppState extends State<MyApp> {
           }
 
           return BlocSelector<AppUserCubit, AppUserState, bool>(
-            selector: (state) {
-              return state is AppUserLoggedIn;
-            },
+            selector: (state) => state is AppUserLoggedIn,
             builder: (context, isLoggedIn) {
               if (isLoggedIn) {
                 return const MainNavigationPage();

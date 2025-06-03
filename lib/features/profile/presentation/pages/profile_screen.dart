@@ -17,8 +17,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh user data when screen is first loaded
-    context.read<AuthBloc>().add(AuthGetUserDetailsEvent());
+    // Only refresh user data if we're logged in
+    final appUserState = context.read<AppUserCubit>().state;
+    if (appUserState is AppUserLoggedIn) {
+      context.read<AuthBloc>().add(AuthGetUserDetailsEvent());
+    }
   }
 
   @override
@@ -26,16 +29,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthSuccess) {
-          // Refresh the screen when auth state changes
-          setState(() {});
+          // Only refresh if we're still logged in
+          final appUserState = context.read<AppUserCubit>().state;
+          if (appUserState is AppUserLoggedIn) {
+            setState(() {});
+          }
         }
       },
       builder: (context, state) {
         final appUserState = context.read<AppUserCubit>().state;
         if (appUserState is! AppUserLoggedIn) {
-          return const Scaffold(
-            body: Center(
-              child: Text('You must be logged in to access this page'),
+          return Scaffold(
+            appBar: AppBar(title: const Text('Profile'), centerTitle: true),
+            body: const Center(
+              child: Text('Please sign in to view your profile'),
             ),
           );
         }
@@ -156,11 +163,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       context.read<AuthBloc>().add(AuthLogOutEvent());
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Logged out successfully'),
-                        ),
-                      );
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
