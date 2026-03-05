@@ -500,7 +500,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final file = File(filePath);
         final fileExt = filePath.split('.').last;
         final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-        final storagePath = '${userId}/$fileName';
+        final storagePath = '$userId/$fileName';
 
         // Check if file exists and is readable
         if (!await file.exists()) {

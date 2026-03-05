@@ -20,7 +20,7 @@ class _AddMatchPageState extends State<AddMatchPage> {
     'La Liga',
     'Bundesliga',
     'Serie A',
-    'Ligue 1'
+    'Ligue 1',
   ];
 
   @override
@@ -59,9 +59,7 @@ class _AddMatchPageState extends State<AddMatchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Match'),
-      ),
+      appBar: AppBar(title: const Text('Add Match')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -70,17 +68,18 @@ class _AddMatchPageState extends State<AddMatchPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<String>(
-                value: _selectedLeague,
+                initialValue: _selectedLeague,
                 decoration: const InputDecoration(
                   labelText: 'League',
                   border: OutlineInputBorder(),
                 ),
-                items: _leagues.map((String league) {
-                  return DropdownMenuItem<String>(
-                    value: league,
-                    child: Text(league),
-                  );
-                }).toList(),
+                items:
+                    _leagues.map((String league) {
+                      return DropdownMenuItem<String>(
+                        value: league,
+                        child: Text(league),
+                      );
+                    }).toList(),
                 onChanged: (String? newValue) {
                   setState(() {
                     _selectedLeague = newValue!;
@@ -152,4 +151,4 @@ class _AddMatchPageState extends State<AddMatchPage> {
       ),
     );
   }
-} 
+}

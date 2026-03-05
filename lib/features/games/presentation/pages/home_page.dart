@@ -262,60 +262,58 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     // Date buttons
-                    ...dates
-                        .map(
-                          (date) => Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedDate = date;
-                                });
-                                context.read<GamesBloc>().add(
-                                  FilterGamesByDateEvent(date),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
+                    ...dates.map(
+                      (date) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedDate = date;
+                            });
+                            context.read<GamesBloc>().add(
+                              FilterGamesByDateEvent(date),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              color:
+                                  selectedDate?.day == date.day
+                                      ? Colors.white
+                                      : Colors.transparent,
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  _getDayName(date),
+                                  style: TextStyle(
+                                    color:
+                                        selectedDate?.day == date.day
+                                            ? theme.primaryColor
+                                            : Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color:
-                                      selectedDate?.day == date.day
-                                          ? Colors.white
-                                          : Colors.transparent,
+                                Text(
+                                  _getFormattedDate(date),
+                                  style: TextStyle(
+                                    color:
+                                        selectedDate?.day == date.day
+                                            ? theme.primaryColor
+                                            : Colors.white,
+                                    fontSize: 12,
+                                  ),
                                 ),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      _getDayName(date),
-                                      style: TextStyle(
-                                        color:
-                                            selectedDate?.day == date.day
-                                                ? theme.primaryColor
-                                                : Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      _getFormattedDate(date),
-                                      style: TextStyle(
-                                        color:
-                                            selectedDate?.day == date.day
-                                                ? theme.primaryColor
-                                                : Colors.white,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              ],
                             ),
                           ),
-                        )
-                        .toList(),
+                        ),
+                      ),
+                    ),
                     IconButton(
                       onPressed: () => _selectDate(context),
                       icon: const Icon(

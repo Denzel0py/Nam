@@ -126,7 +126,7 @@ class _AddLiveMatchPageState extends State<AddLiveMatchPage> {
                             labelText: 'Team 1',
                             border: OutlineInputBorder(),
                           ),
-                          value: _selectedTeam1Id,
+                          initialValue: _selectedTeam1Id,
                           items:
                               _teams.map((team) {
                                 return DropdownMenuItem<String>(
@@ -152,7 +152,7 @@ class _AddLiveMatchPageState extends State<AddLiveMatchPage> {
                             labelText: 'Team 2',
                             border: OutlineInputBorder(),
                           ),
-                          value: _selectedTeam2Id,
+                          initialValue: _selectedTeam2Id,
                           items:
                               _teams.map((team) {
                                 return DropdownMenuItem<String>(

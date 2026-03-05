@@ -16,7 +16,7 @@ class _AddGameDialogState extends State<AddGameDialog> {
   final _gameDateController = TextEditingController();
   final _gameTimeController = TextEditingController();
   final _gameLocationController = TextEditingController();
-  
+
   String? selectedTeam1Id;
   String? selectedTeam2Id;
   List<Map<String, dynamic>> teams = [];
@@ -34,7 +34,7 @@ class _AddGameDialogState extends State<AddGameDialog> {
           .from('teams')
           .select()
           .order('name');
-      
+
       setState(() {
         teams = List<Map<String, dynamic>>.from(response);
         isLoading = false;
@@ -57,22 +57,27 @@ class _AddGameDialogState extends State<AddGameDialog> {
   }
 
   void _submitForm() {
-    if (_formKey.currentState!.validate() && 
-        selectedTeam1Id != null && 
+    if (_formKey.currentState!.validate() &&
+        selectedTeam1Id != null &&
         selectedTeam2Id != null) {
-      
       context.read<GamesBloc>().add(
-            MakeGamesEvent(
-              team1: selectedTeam1Id!,
-              team2: selectedTeam2Id!,
-              league: _leagueController.text,
-              team1Logo: teams.firstWhere((team) => team['id'] == selectedTeam1Id)['logo_url'],
-              team2Logo: teams.firstWhere((team) => team['id'] == selectedTeam2Id)['logo_url'],
-              gameDate: _gameDateController.text,
-              gameTime: _gameTimeController.text,
-              gameLocation: _gameLocationController.text,
-            ),
-          );
+        MakeGamesEvent(
+          team1: selectedTeam1Id!,
+          team2: selectedTeam2Id!,
+          league: _leagueController.text,
+          team1Logo:
+              teams.firstWhere(
+                (team) => team['id'] == selectedTeam1Id,
+              )['logo_url'],
+          team2Logo:
+              teams.firstWhere(
+                (team) => team['id'] == selectedTeam2Id,
+              )['logo_url'],
+          gameDate: _gameDateController.text,
+          gameTime: _gameTimeController.text,
+          gameLocation: _gameLocationController.text,
+        ),
+      );
       Navigator.of(context).pop();
     }
   }
@@ -90,40 +95,39 @@ class _AddGameDialogState extends State<AddGameDialog> {
               children: [
                 const Text(
                   'Add New Game',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 if (isLoading)
                   const Center(child: CircularProgressIndicator())
                 else ...[
                   DropdownButtonFormField<String>(
-                    value: selectedTeam1Id,
+                    initialValue: selectedTeam1Id,
                     decoration: const InputDecoration(
                       labelText: 'Team 1',
                       border: OutlineInputBorder(),
                     ),
-                    items: teams.map((team) {
-                      return DropdownMenuItem(
-                        value: team['id'].toString(),
-                        child: Row(
-                          children: [
-                            if (team['logo_url'] != null)
-                              Image.network(
-                                team['logo_url'],
-                                width: 24,
-                                height: 24,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.sports),
-                              ),
-                            const SizedBox(width: 8),
-                            Text(team['name']),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                    items:
+                        teams.map((team) {
+                          return DropdownMenuItem(
+                            value: team['id'].toString(),
+                            child: Row(
+                              children: [
+                                if (team['logo_url'] != null)
+                                  Image.network(
+                                    team['logo_url'],
+                                    width: 24,
+                                    height: 24,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(Icons.sports),
+                                  ),
+                                const SizedBox(width: 8),
+                                Text(team['name']),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                     onChanged: (value) {
                       setState(() {
                         selectedTeam1Id = value;
@@ -138,30 +142,32 @@ class _AddGameDialogState extends State<AddGameDialog> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: selectedTeam2Id,
+                    initialValue: selectedTeam2Id,
                     decoration: const InputDecoration(
                       labelText: 'Team 2',
                       border: OutlineInputBorder(),
                     ),
-                    items: teams.map((team) {
-                      return DropdownMenuItem(
-                        value: team['id'].toString(),
-                        child: Row(
-                          children: [
-                            if (team['logo_url'] != null)
-                              Image.network(
-                                team['logo_url'],
-                                width: 24,
-                                height: 24,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.sports),
-                              ),
-                            const SizedBox(width: 8),
-                            Text(team['name']),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                    items:
+                        teams.map((team) {
+                          return DropdownMenuItem(
+                            value: team['id'].toString(),
+                            child: Row(
+                              children: [
+                                if (team['logo_url'] != null)
+                                  Image.network(
+                                    team['logo_url'],
+                                    width: 24,
+                                    height: 24,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(Icons.sports),
+                                  ),
+                                const SizedBox(width: 8),
+                                Text(team['name']),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                     onChanged: (value) {
                       setState(() {
                         selectedTeam2Id = value;
@@ -256,4 +262,4 @@ class _AddGameDialogState extends State<AddGameDialog> {
       ),
     );
   }
-} 
+}

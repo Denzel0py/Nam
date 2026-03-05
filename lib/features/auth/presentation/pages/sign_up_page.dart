@@ -48,21 +48,11 @@ class _SignUpPageState extends State<SignUpPage> {
         } else if (state is AuthSuccess) {
           // If user is already logged in, go to home page
           // Otherwise, go to sign in page
-          if (state.user != null) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MainNavigationPage(),
-              ),
-              (route) => false,
-            );
-          } else {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const SignInPage()),
-              (route) => false,
-            );
-          }
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MainNavigationPage()),
+            (route) => false,
+          );
         }
       },
       builder: (context, state) {
